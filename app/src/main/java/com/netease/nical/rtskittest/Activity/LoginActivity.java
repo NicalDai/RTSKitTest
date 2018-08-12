@@ -14,12 +14,17 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.netease.nical.rtskittest.Login.CustomBoolean;
+import com.netease.nical.rtskittest.Login.DataSaveToLocal;
 import com.netease.nical.rtskittest.Login.EditTextClearTools;
 import com.netease.nical.rtskittest.MD5.MD5;
+import com.netease.nical.rtskittest.NimSDKOptionConfig;
 import com.netease.nical.rtskittest.R;
 import com.netease.nical.rtskittest.permission.MPermission;
 import com.netease.nical.rtskittest.permission.annotation.OnMPermissionDenied;
@@ -42,12 +47,18 @@ public class LoginActivity extends AppCompatActivity {
     private static final int BASIC_PERMISSION_REQUEST_CODE = 100;
     private String token;
     private String Appkey;
+    private CheckBox needRecordPasswordCB;
+    private Boolean needRecordPassword = false;
+    private DataSaveToLocal dataSaveToLocal = new DataSaveToLocal();
+    private CustomBoolean needMD5 = new CustomBoolean(false); //token是否需要MD5（仅仅针对demo的appkey而言），如果是本地文件读取的，就不需要MD5
+    private String filePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         Appkey = getAppKey();
+        filePath = NimSDKOptionConfig.getAppCacheDir(getApplicationContext())+"logininfo.txt";
         //权限信息
         authorityManage();
         //初始化界面
@@ -55,38 +66,75 @@ public class LoginActivity extends AppCompatActivity {
         //获取基本权限（相机，麦克风等）
         requestBasicPermission();
 
+        //保存按钮点击事件
+        needRecordPasswordCB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    needRecordPassword = true;
+                }else {
+                    needRecordPassword = false;
+                }
+            }
+        });
+
         Login_OK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String accid = account.getText().toString();
                 //判断是否为demo的appkey，是就加MD5，不是就直接透传
-                if(Appkey.equals("45c6af3c98409b18a84451215d0bdd6e")){
+                if(Appkey.equals("45c6af3c98409b18a84451215d0bdd6e") && needMD5.getB()){
                     token = MD5.getStringMD5(password.getText().toString());
                 }else {
                     token = password.getText().toString();
                 }
                 //实例化logininfo，执行登陆
                 LoginInfo loginInfo = new LoginInfo(accid,token);
-                doLogin(loginInfo);
+                doLogin(loginInfo,password.getText().toString());
             }
         });
 
+    }
+
+    private LoginInfo getLoginInfo(){
+        String loginData = dataSaveToLocal.readDataToLocal(NimSDKOptionConfig.getAppCacheDir(getApplicationContext())+"logininfo.txt");
+        if(!loginData.isEmpty()){
+            int index1 = loginData.indexOf(",");
+            String accid = loginData.substring(0,index1);
+            String token = loginData.substring(index1+1,loginData.length());
+            LoginInfo loginInfo = new LoginInfo(accid,token);
+            return loginInfo;
+        }else {
+            return null;
+        }
     }
 
     /**
      * 界面初始化
      */
     private void initView(){
+
+        LoginInfo loginInfo =  getLoginInfo();
+
         Login_OK = findViewById(R.id.Login_OK);
         account = findViewById(R.id.account);
         password = findViewById(R.id.password);
+
 
         ImageView unameClear = (ImageView) findViewById(R.id.iv_unameClear);
         ImageView pwdClear = (ImageView) findViewById(R.id.iv_pwdClear);
 
         //点击按钮清除EditText的内容
-        EditTextClearTools.addClearListener(account,unameClear);
-        EditTextClearTools.addClearListener(password,pwdClear);
+        EditTextClearTools.addClearListener(account,unameClear,needMD5);
+        EditTextClearTools.addClearListener(password,pwdClear,needMD5);
+
+        if(loginInfo != null){
+            needMD5.setB(false);    //如果是demo 的appkey，从本地文件中获取的密码，已经是md5之后的结果。
+            account.setText(loginInfo.getAccount());
+            password.setText(loginInfo.getToken());
+        }
+
+        needRecordPasswordCB = findViewById(R.id.cb_checkbox);
 
     }
 
@@ -159,13 +207,19 @@ public class LoginActivity extends AppCompatActivity {
      * 执行登陆
      * @param loginInfo
      */
-    private void doLogin(LoginInfo loginInfo){
+    private void doLogin(LoginInfo loginInfo, final String originalToken){
         RequestCallback<LoginInfo> callback = new RequestCallback<LoginInfo>() {
             @Override
             public void onSuccess(LoginInfo loginInfo) {
                 Toast.makeText(LoginActivity.this, "登陆成功！", Toast.LENGTH_SHORT).show();
-                //跳转到拨打界面
 
+                //判断是否需要本地存储密码(CheckBox打钩)
+                if (needRecordPassword){
+                    dataSaveToLocal.saveDataToLocal(loginInfo.getAccount()+","+loginInfo.getToken(),filePath);
+                }else {//删除文件
+                    dataSaveToLocal.deleteFile(filePath);
+                }
+                //跳转到拨打界面
                 Intent intent = new Intent(LoginActivity.this,RTSCallActivity.class);
                 startActivity(intent);
                 finish();

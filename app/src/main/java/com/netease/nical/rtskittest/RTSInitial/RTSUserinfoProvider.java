@@ -1,5 +1,6 @@
 package com.netease.nical.rtskittest.RTSInitial;
 
+
 import android.util.Log;
 
 import com.netease.nimlib.sdk.NIMClient;
@@ -14,6 +15,7 @@ import java.util.List;
  * 用户资料提供类，主要是为了判断本地是否有这个用户的资料
  */
 public class RTSUserinfoProvider {
+
 
     private NimUserInfo nimUserInfo;
     private String TAG = "RTSUserinfoProvider";
@@ -37,29 +39,17 @@ public class RTSUserinfoProvider {
         nimUserInfo = NIMClient.getService(UserService.class).getUserInfo(account);
         //拿不到去拿云端的
         if (nimUserInfo == null){
-            //示例仅处理单个账号的场景。
-            String[] array = {account};
-            List<String> accounts = Arrays.asList(array);
-            NIMClient.getService(UserService.class).fetchUserInfo(accounts)
-                    .setCallback(new RequestCallback<List<NimUserInfo>>() {
-                        @Override
-                        public void onSuccess(List<NimUserInfo> nimUserInfos) {
-                            nimUserInfo = nimUserInfos.get(0);
-                            Log.d(TAG, "onSuccess: 获取云端好友资料成功");
-                        }
 
-                        @Override
-                        public void onFailed(int i) {
-                            Log.e(TAG, "onFailed: 获取云端好友资料失败,错误码："+i );
-                        }
-
-                        @Override
-                        public void onException(Throwable throwable) {
-
-                        }
-                    });
         }
         return nimUserInfo;
+    }
+
+    private void sleep(){
+        try {
+            Thread.currentThread().sleep(200);//阻断200毫秒
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
 }

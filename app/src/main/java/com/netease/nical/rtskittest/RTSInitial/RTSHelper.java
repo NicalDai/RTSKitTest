@@ -1,6 +1,7 @@
 package com.netease.nical.rtskittest.RTSInitial;
 
 
+import com.netease.nim.rtskit.CustomClass.DisplayName;
 import com.netease.nim.rtskit.RTSKit;
 import com.netease.nim.rtskit.api.listener.RTSEventListener;
 import com.netease.nimlib.sdk.uinfo.model.UserInfo;
@@ -10,6 +11,7 @@ import com.netease.nimlib.sdk.uinfo.model.UserInfo;
  */
 
 public class RTSHelper {
+
 
     /**
      * 初始化方法
@@ -30,12 +32,24 @@ public class RTSHelper {
             }
 
             @Override
-            public String getUserDisplayName(String account) {
-                return RTSUserinfoProvider.getInstance().getUserinfo(account).getName();
+            public DisplayName getUserDisplayName(String account) {
+                if (RTSUserinfoProvider.getInstance().getUserinfo(account) == null){
+                    //这是自定义的类，包含展示的name和是否需要在界面上重新获取name
+                    DisplayName displayName = new DisplayName();
+                    displayName.setAccount(account);
+                    displayName.setNeedFresh(true);
+                    return displayName;
+                }else {
+                    //这是自定义的类，包含展示的name和是否需要在界面上重新获取name
+                    DisplayName displayName = new DisplayName();
+                    displayName.setAccount(RTSUserinfoProvider.getInstance().getUserinfo(account).getName());
+                    displayName.setNeedFresh(false);
+                    return displayName;
+                }
+
             }
         });
     }
-
 
     /**
      * 设置rts事件监听器

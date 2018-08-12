@@ -1,5 +1,6 @@
 package com.netease.nim.rtskit.api;
 
+import com.netease.nim.rtskit.CustomClass.DisplayName;
 import com.netease.nimlib.sdk.uinfo.model.UserInfo;
 
 /**
@@ -21,5 +22,5 @@ public abstract class IUserInfoProvider {
      * @param account 用户账号
      * @return 用户显示名称
      */
-    public abstract String getUserDisplayName(String account);
+    public abstract DisplayName getUserDisplayName(String account);
 }

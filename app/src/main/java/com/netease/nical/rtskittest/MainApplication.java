@@ -13,7 +13,7 @@ public class MainApplication extends Application{
     @Override
     public void onCreate() {
         super.onCreate();
-        NIMClient.init(this,null,null);
+        NIMClient.init(this,null,NimSDKOptionConfig.getSDKOptions(this));
 
         if(NIMUtil.isMainProcess(this)){
             initRTSKit();

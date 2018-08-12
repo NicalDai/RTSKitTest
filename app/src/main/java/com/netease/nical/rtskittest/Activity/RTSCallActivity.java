@@ -55,4 +55,5 @@ public class RTSCallActivity extends AppCompatActivity {
         }
         return super.onTouchEvent(event);
     }
+
 }

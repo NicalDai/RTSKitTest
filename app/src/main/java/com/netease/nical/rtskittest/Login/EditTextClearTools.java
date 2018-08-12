@@ -1,5 +1,6 @@
 package com.netease.nical.rtskittest.Login;
 
+import android.content.Context;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -11,7 +12,12 @@ import android.widget.ImageView;
  */
 
 public class EditTextClearTools {
-    public static void addClearListener(final EditText et , final ImageView iv){
+
+
+
+    public static void addClearListener(final EditText et , final ImageView iv ,final CustomBoolean b){
+
+
         et.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -20,7 +26,11 @@ public class EditTextClearTools {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-
+                if(before == 0 && count == 32){
+                    b.setB(false);
+                }else {
+                    b.setB(true);
+                }
             }
 
             @Override
@@ -35,12 +45,14 @@ public class EditTextClearTools {
             }
         });
 
+
         iv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 et.setText("");
             }
         });
+
     }
 
 }

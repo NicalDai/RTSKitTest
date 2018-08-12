@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.netease.nim.rtskit.CustomClass.DisplayName;
 import com.netease.nim.rtskit.R;
 import com.netease.nim.rtskit.RTSKit;
 import com.netease.nim.rtskit.common.activity.NimToolBarOptions;
@@ -30,6 +32,7 @@ import com.netease.nim.rtskit.doodle.action.MyPath;
 import com.netease.nim.rtskit.doodle.constant.ActionTypeEnum;
 import com.netease.nimlib.sdk.NIMClient;
 import com.netease.nimlib.sdk.Observer;
+import com.netease.nimlib.sdk.RequestCallback;
 import com.netease.nimlib.sdk.StatusCode;
 import com.netease.nimlib.sdk.auth.AuthServiceObserver;
 import com.netease.nimlib.sdk.auth.ClientType;
@@ -47,9 +50,12 @@ import com.netease.nimlib.sdk.rts.model.RTSNotifyOption;
 import com.netease.nimlib.sdk.rts.model.RTSOnlineAckEvent;
 import com.netease.nimlib.sdk.rts.model.RTSOptions;
 import com.netease.nimlib.sdk.rts.model.RTSTunData;
+import com.netease.nimlib.sdk.uinfo.UserService;
+import com.netease.nimlib.sdk.uinfo.model.NimUserInfo;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -67,6 +73,8 @@ public class RTSActivity extends UI implements View.OnClickListener {
     private static final String KEY_UID = "KEY_UID";
 
     // data
+    private boolean isNeedFinish = false; //是否需要从新获取用户信息进行UI刷新
+    private DisplayName displayName; //获取到的用户昵称封装类
     private boolean isIncoming = false;
     private String account;      // 对方帐号
     private String sessionId;    // 会话的唯一标识
@@ -87,6 +95,7 @@ public class RTSActivity extends UI implements View.OnClickListener {
     private Button rejectBtn;
     private Button endSessionBtn;
     private Button audioSwitchBtn;
+    private static NimUserInfo nimUserInfo;
 
     // 白板布局
     private View sessionLayout;
@@ -94,6 +103,13 @@ public class RTSActivity extends UI implements View.OnClickListener {
     private Button backBtn;
     private Button clearBtn;
 
+
+    /**
+     * 收到白板会话，跳转到这个Activity
+     * @param context
+     * @param data
+     * @param source
+     */
     public static void incomingSession(Context context, RTSData data, int source) {
 
         if (isBusy) {
@@ -112,6 +128,12 @@ public class RTSActivity extends UI implements View.OnClickListener {
         context.startActivity(intent);
     }
 
+    /**
+     * 发起白板会话，跳转到这里
+     * @param context
+     * @param account
+     * @param source
+     */
     public static void startSession(Context context, String account, int source) {
         needFinish = false;
         Intent intent = new Intent();
@@ -157,6 +179,9 @@ public class RTSActivity extends UI implements View.OnClickListener {
         NIMClient.getService(AuthServiceObserver.class).observeOnlineStatus(userStatusObserver, true);
     }
 
+    /**
+     * 初始化ActionBar
+     */
     private void initActionBarButton() {
         TextView closeSessionBtn = findView(R.id.action_bar_right_clickable_textview);
         closeSessionBtn.setText(R.string.close);
@@ -184,6 +209,9 @@ public class RTSActivity extends UI implements View.OnClickListener {
         });
     }
 
+    /**
+     * 后退按钮逻辑
+     */
     @Override
     public void onBackPressed() {
     }
@@ -202,7 +230,7 @@ public class RTSActivity extends UI implements View.OnClickListener {
     }
 
     /**
-     * 注销监听以及状态信息
+     * 注销监听以及清理状态信息
      */
     @Override
     protected void onDestroy() {
@@ -226,8 +254,10 @@ public class RTSActivity extends UI implements View.OnClickListener {
         isBusy = false;
     }
 
+    /**
+     * 在线状态监听处理
+     */
     Observer<StatusCode> userStatusObserver = new Observer<StatusCode>() {
-
         @Override
         public void onEvent(StatusCode code) {
             if (code.wontAutoLogin()) {
@@ -315,8 +345,42 @@ public class RTSActivity extends UI implements View.OnClickListener {
     }
 
     private void initAccountInfoView() {
-        nameText.setText(RTSKit.getUserInfoProvider().getUserDisplayName(account));
+        displayName = RTSKit.getUserInfoProvider().getUserDisplayName(account);
+        isNeedFinish = displayName.isNeedFresh();
+        nameText.setText(displayName.getAccount());
         headImage.loadBuddyAvatar(account);
+        if(isNeedFinish){
+            //示例仅处理单个账号的场景。
+            String[] array = {account};
+            List<String> accounts = Arrays.asList(array);
+            NIMClient.getService(UserService.class).fetchUserInfo(accounts)
+                    .setCallback(new RequestCallback<List<NimUserInfo>>() {
+                        @Override
+                        public void onSuccess(List<NimUserInfo> nimUserInfos) {
+                            if(!nimUserInfos.isEmpty()){
+                                nimUserInfo = nimUserInfos.get(0);
+                                nameText.setText(nimUserInfo.getName());
+                                headImage.loadBuddyAvatar(account);
+                                isNeedFinish = false;
+                                Log.d("RTSActivity", "onSuccess: 获取到"+nimUserInfo.getAccount()+"的云端资料");
+                                Toast.makeText(RTSActivity.this, "获取" + nimUserInfo.getName()+"的云端资料成功", Toast.LENGTH_SHORT).show();
+                            }else {
+                                Toast.makeText(RTSActivity.this, "请检查对方账号是否存在！", Toast.LENGTH_SHORT).show();
+                                onFinish();
+                            }
+
+                        }
+                        @Override
+                        public void onFailed(int i) {
+                            Log.e("RTSActivity", "onFailed: 获取云端好友资料失败,错误码："+i );
+                        }
+
+                        @Override
+                        public void onException(Throwable throwable) {
+
+                        }
+                    });
+        }
     }
 
     private void registerOutgoingObserver(boolean register) {
@@ -575,6 +639,9 @@ public class RTSActivity extends UI implements View.OnClickListener {
         }
     }
 
+    /**
+     * 接听
+     */
     private void acceptSession() {
         RTSOptions options = new RTSOptions().setRecordAudioTun(false).setRecordDataTun(true);
         RTSManager.getInstance().accept(sessionId, options, new RTSCallback<Boolean>() {
@@ -614,6 +681,9 @@ public class RTSActivity extends UI implements View.OnClickListener {
 
     }
 
+    /**
+     * 挂断
+     */
     private void endSession() {
         RTSManager.getInstance().close(sessionId, new RTSCallback<Void>() {
             @Override
@@ -623,7 +693,7 @@ public class RTSActivity extends UI implements View.OnClickListener {
 
             @Override
             public void onFailed(int code) {
-                Toast.makeText(RTSActivity.this, "挂断请求错误，code：" + code, Toast.LENGTH_SHORT).show();
+                Toast.makeText(RTSActivity.this, "挂断请求错误，或者发起方账号不存在。code：" + code, Toast.LENGTH_SHORT).show();
             }
 
             @Override

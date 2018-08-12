@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">rtskit</string>
+    <string name="app_name">RTSDemo</string>
 
     <string name="empty"></string>
     <string name="cancel">取消</string>

@@ -46,7 +46,7 @@
     <dimen name="thick_line_size">2px</dimen>
     <dimen name="very_samll_text_size">9sp</dimen>
     <string name="accept_session">接受</string>
-    <string name="app_name">rtskit</string>
+    <string name="app_name">RTSDemo</string>
     <string name="callee_ack_timeout">对方未接受请求</string>
     <string name="callee_reject">对方拒绝了本次请求</string>
     <string name="cancel">取消</string>
