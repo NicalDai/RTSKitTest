@@ -1,13 +1,6 @@
 # RTSKitTest
 热心网友的云信RTSKit的集成示例
 
-![Image text](https://github.com/NicalDai/Test/raw/master/%E7%99%BB%E9%99%86%E7%95%8C%E9%9D%A2.png)
-
-
-![Image text](https://github.com/NicalDai/Test/raw/master/%E5%8F%91%E8%B5%B7%E7%95%8C%E9%9D%A2.png)
-
-
-![Image text](https://github.com/NicalDai/Test/raw/master/%E7%AD%89%E5%BE%85%E7%95%8C%E9%9D%A2.png)
-
-
-![Image text](https://github.com/NicalDai/Test/raw/master/%E7%99%BD%E6%9D%BF%E7%95%8C%E9%9D%A2.png)
+Version 1.1
+1、修复了发起呼叫时，被叫账号本地不存在，导致必现的崩溃问题。
+2、新增登陆时记住密码的功能。
