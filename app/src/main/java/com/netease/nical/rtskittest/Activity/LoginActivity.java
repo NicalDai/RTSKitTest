@@ -84,6 +84,7 @@ public class LoginActivity extends AppCompatActivity {
                 String accid = account.getText().toString();
                 //判断是否为demo的appkey，是就加MD5，不是就直接透传
                 if(Appkey.equals("45c6af3c98409b18a84451215d0bdd6e") && needMD5.getB()){
+
                     token = MD5.getStringMD5(password.getText().toString());
                 }else {
                     token = password.getText().toString();
