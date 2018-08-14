@@ -44,12 +44,5 @@ public class RTSUserinfoProvider {
         return nimUserInfo;
     }
 
-    private void sleep(){
-        try {
-            Thread.currentThread().sleep(200);//阻断200毫秒
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
 
 }

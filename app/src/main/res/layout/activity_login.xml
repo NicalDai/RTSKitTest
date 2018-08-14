@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/logoScreenBackground"
-    tools:context=".Activity.LoginActivity">
+    tools:context=".Login.LoginActivity">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/iv_icon"

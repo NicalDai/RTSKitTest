@@ -93,7 +93,7 @@
             android:exported="false"
             android:process=":core" />
 
-        <activity android:name=".Activity.LoginActivity">
+        <activity android:name=".Login.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

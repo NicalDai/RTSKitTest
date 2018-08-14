@@ -560,6 +560,9 @@ public class RTSActivity extends UI implements View.OnClickListener {
         }
     };
 
+    /**
+     * 超时观察者
+     */
     private Observer<RTSTimeOutEvent> timeoutObserver = new Observer<RTSTimeOutEvent>() {
         @Override
         public void onEvent(RTSTimeOutEvent rtsTimeOutEvent) {
@@ -614,6 +617,10 @@ public class RTSActivity extends UI implements View.OnClickListener {
         }
     }
 
+    /**
+     * 按钮点击事件
+     * @param v
+     */
     @Override
     public void onClick(View v) {
         int i = v.getId();
@@ -673,6 +680,9 @@ public class RTSActivity extends UI implements View.OnClickListener {
         });
     }
 
+    /**
+     * 接听界面初始化
+     */
     private void acceptView() {
         startSessionLayout.setVisibility(View.GONE);
         sessionLayout.setVisibility(View.VISIBLE);
@@ -709,6 +719,10 @@ public class RTSActivity extends UI implements View.OnClickListener {
         onFinish(true);
     }
 
+    /**
+     * 结束当前界面
+     * @param selfFinish
+     */
     private void onFinish(boolean selfFinish) {
         if (finishFlag) {
             return;
